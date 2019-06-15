@@ -1,18 +1,23 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_shimmer/bluetooth_device.dart';
 import 'package:flutter_shimmer/flutter_shimmer.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(new MyApp());
 
 class MyApp extends StatefulWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  _MyAppState createState() => new _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  FlutterShimmer shimmerPlugin;
+  List<BluetoothDevice> _devices = [];
+  BluetoothDevice _device;
+  Stream<Map<String, dynamic>> _dataStream;
+  bool _connected = false;
+  bool _pressed = false;
 
   @override
   void initState() {
@@ -20,36 +25,125 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
+    shimmerPlugin = FlutterShimmer();
+    List<BluetoothDevice> devices = [];
+
     try {
-      platformVersion = await FlutterShimmer.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      devices = await shimmerPlugin.getBondedDevices();
+    } catch (e) {
+      // TODO - Error
+      devices = [BluetoothDevice(e.toString(), "")];
     }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
     if (!mounted) return;
-
     setState(() {
-      _platformVersion = platformVersion;
+      _devices = devices;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_dataStream == null) _dataStream = shimmerPlugin.stream;
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: Text('Flutter Bluetooth Serial'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: Container(
+          child: ListView(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 0.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      'Device:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    DropdownButton(
+                      items: _getDeviceItems(),
+                      onChanged: (value) => setState(() => _device = value),
+                      value: _device,
+                    ),
+                    RaisedButton(
+                      onPressed:
+                          _pressed ? null : _connected ? _disconnect : _connect,
+                      child: Text(_connected ? 'Disconnect' : 'Connect'),
+                    ),
+                  ],
+                ),
+              ),
+              new StreamBuilder(
+                  stream: _dataStream,
+                  builder: (context, asyncSnapshot) {
+                    if (asyncSnapshot.hasError) {
+                      return new Text("Error!");
+                    } else if (asyncSnapshot.data == null) {
+                      return Text("Waiting");
+                    } else {
+                      return Text(asyncSnapshot.data.toString());
+                    }
+                  })
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  List<DropdownMenuItem<BluetoothDevice>> _getDeviceItems() {
+    List<DropdownMenuItem<BluetoothDevice>> items = [];
+    if (_devices.isEmpty) {
+      items.add(DropdownMenuItem(
+        child: Text('NONE'),
+      ));
+    } else {
+      _devices.forEach((device) {
+        items.add(DropdownMenuItem(
+          child: Text(device.name),
+          value: device,
+        ));
+      });
+    }
+    return items;
+  }
+
+  void _connect() {
+    if (_device == null) {
+      show('No device selected.');
+    } else {
+      shimmerPlugin.connectDevice({"macAddress": _device.address});
+      setState(() {
+        _connected = true;
+      });
+    }
+  }
+
+  void _disconnect() {
+    shimmerPlugin.disconnect();
+    setState(() {
+      _connected = false;
+    });
+  }
+
+  Future show(
+    String message, {
+    Duration duration: const Duration(seconds: 3),
+  }) async {
+    await new Future.delayed(new Duration(milliseconds: 100));
+    Scaffold.of(context).showSnackBar(
+      new SnackBar(
+        content: new Text(
+          message,
+          style: new TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        duration: duration,
       ),
     );
   }
