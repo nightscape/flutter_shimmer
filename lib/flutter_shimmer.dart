@@ -33,9 +33,9 @@ class FlutterShimmer {
     subscription = _shimmerStream.listen(null);
   }
 
-  Future<void> connectDevice(Map<String, dynamic> args) {
+  Future<void> connectDevice(BluetoothDevice device) {
     if (Platform.isAndroid) {
-      return _methodChannel.invokeMethod("connectDevice", args);
+      return _methodChannel.invokeMethod("connectDevice", {"macAddress": device.address});
     } else {
       return Future.error(
           ShimmerException('Shimmer API exclusively available on Android!'));

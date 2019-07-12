@@ -116,7 +116,7 @@ class _MyAppState extends State<MyApp> {
     if (_device == null) {
       show('No device selected.');
     } else {
-      shimmerPlugin.connectDevice({"macAddress": _device.address});
+      shimmerPlugin.connectDevice(_device);
       setState(() {
         _connected = true;
       });
