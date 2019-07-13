@@ -54,6 +54,7 @@ class FlutterShimmerPlugin(val registrar: Registrar) : EventChannel.StreamHandle
         if (methodCall.method == CONNECT_DEVICE) {
             connectToDevice(methodCall)
             eventSink!!.success(emptyMap<String, String>())
+            result.success("CONNECTED")
         } else if (methodCall.method == GET_BONDED_DEVICES) {
             val bondedDevices = bondedDevices
             result.success(bondedDevices)
