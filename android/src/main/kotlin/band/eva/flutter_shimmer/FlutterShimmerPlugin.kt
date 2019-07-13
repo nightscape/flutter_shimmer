@@ -68,7 +68,7 @@ class FlutterShimmerPlugin(val registrar: Registrar) : EventChannel.StreamHandle
 
     private fun connectToDevice(methodCall: MethodCall) {
         val macAddress = methodCall.argument<String>("macAddress")
-        if (manager == null || !manager!!.macAddress.equals(macAddress)) {
+        if (manager == null || !manager!!.macAddress.equals(macAddress) || manager!!.eventSink != this.eventSink) {
             manager = ShimmerSensorHandler(registrar!!.activity(), this.eventSink!!, macAddress!!)
         }
         manager!!.startService()

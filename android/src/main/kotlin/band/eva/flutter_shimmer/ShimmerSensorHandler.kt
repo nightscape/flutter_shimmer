@@ -21,7 +21,7 @@ import com.shimmerresearch.driver.CallbackObject
 import com.shimmerresearch.driver.ShimmerDevice
 import com.shimmerresearch.managers.bluetoothManager.ShimmerBluetoothManager
 
-class ShimmerSensorHandler(private val activity: Activity, private val eventSink: EventChannel.EventSink, val macAddress: String) : SensorHandler {
+class ShimmerSensorHandler(private val activity: Activity, val eventSink: EventChannel.EventSink, val macAddress: String) : SensorHandler {
     private var btManager: ShimmerBluetoothManagerAndroid? = null
 
     private var shimmerDevice: ShimmerDevice? = null
