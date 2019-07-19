@@ -48,7 +48,7 @@ class ShimmerSensorHandler(private val activity: Activity, val eventSink: EventC
                     val m = HashMap<String, Any>()
                     val obj = msg.obj as ObjectCluster
                     if (obj != null) {
-                        m["timestamp"] = obj.mSystemTimeStamp
+                        m["Time"] = obj.mSystemTimeStamp
                         m["sensor"] = obj.shimmerName
                         for ((key, value) in obj.mPropertyCluster.entries()) {
                             m[key] = value.mData
