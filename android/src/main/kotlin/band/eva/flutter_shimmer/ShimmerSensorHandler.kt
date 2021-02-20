@@ -98,7 +98,7 @@ class ShimmerSensorHandler(private val activity: Activity, val eventSink: EventC
                 Shimmer.MESSAGE_DEVICE_NAME -> Log.i(LOG_TAG, "Device name received")
 
 
-                Shimmer.MESSAGE_TOAST -> Log.i(LOG_TAG, msg.data.getString(Shimmer.TOAST))
+                Shimmer.MESSAGE_TOAST -> msg.data.getString(Shimmer.TOAST)?.let { Log.i(LOG_TAG, it) }
             }
 
             super.handleMessage(msg)
